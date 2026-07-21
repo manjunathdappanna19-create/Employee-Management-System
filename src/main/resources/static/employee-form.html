@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Create Employee</title>
+</head>
+<body>
+  <h1>Create Employee</h1>
+  <form id="employeeForm">
+    <label> Name: <input name="empName" required /></label><br/>
+    <label> Email: <input name="empEmail" type="email" required /></label><br/>
+    <label> Phone: <input name="empPhone" required /></label><br/>
+    <label> Salary: <input name="empSalary" type="number" required /></label><br/>
+    <label> Dept Id: <input name="deptId" type="number" required /></label><br/>
+    <button type="submit">Create</button>
+  </form>
+
+  <pre id="result"></pre>
+
+  <h2>Delete Employee</h2>
+  <form id="deleteForm">
+    <label> Employee ID: <input name="empId" type="number" required /></label>
+    <button type="submit">Delete</button>
+  </form>
+
+  <pre id="deleteResult"></pre>
+
+  <script>
+    const form = document.getElementById('employeeForm');
+    const result = document.getElementById('result');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const payload = {
+        empName: formData.get('empName'),
+        empEmail: formData.get('empEmail'),
+        empPhone: formData.get('empPhone'),
+        empSalary: parseInt(formData.get('empSalary')),
+        deptId: parseInt(formData.get('deptId'))
+      };
+
+      try {
+        const resp = await fetch('/api/employees', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await resp.json();
+        result.textContent = JSON.stringify(json, null, 2);
+      } catch (err) {
+        result.textContent = 'Error: ' + err;
+      }
+    });
+
+    // Delete handler
+    const deleteForm = document.getElementById('deleteForm');
+    const deleteResult = document.getElementById('deleteResult');
+    deleteForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = new FormData(deleteForm).get('empId');
+      try {
+        const resp = await fetch('/api/employees/' + encodeURIComponent(id), { method: 'DELETE' });
+        if (resp.status === 204) {
+          deleteResult.textContent = 'Deleted employee with id: ' + id;
+        } else {
+          const text = await resp.text();
+          deleteResult.textContent = 'Delete failed: ' + resp.status + ' - ' + text;
+        }
+      } catch (err) {
+        deleteResult.textContent = 'Error: ' + err;
+      }
+    });
+  </script>
+</body>
+</html>
+
